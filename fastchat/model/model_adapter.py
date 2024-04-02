@@ -103,6 +103,7 @@ class BaseModelAdapter:
                 low_cpu_mem_usage=True,
                 trust_remote_code=True,
                 **from_pretrained_kwargs,
+                cache_dir='/projects/hf_cache/'
             )
         except NameError:
             model = AutoModel.from_pretrained(
