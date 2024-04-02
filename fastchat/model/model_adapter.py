@@ -1287,7 +1287,7 @@ class QwenORPOAdapter(BaseModelAdapter):
     use_fast_tokenizer = False
 
     def match(self, model_path: str):
-        return "qwen" in model_path.lower() and "orpo" in model_path.lower()
+        return "qwen1.5" in model_path.lower() and "orpo" in model_path.lower()
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("qwen-orpo")
@@ -2323,6 +2323,7 @@ class CllmAdapter(BaseModelAdapter):
 # The one registered earlier has a higher matching priority.
 register_model_adapter(PeftModelAdapter)
 register_model_adapter(StableVicunaAdapter)
+register_model_adapter(QwenORPOAdapter)
 register_model_adapter(VicunaAdapter)
 register_model_adapter(AiroborosAdapter)
 register_model_adapter(LongChatAdapter)
