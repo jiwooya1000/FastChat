@@ -1279,6 +1279,18 @@ class ManticoreAdapter(BaseModelAdapter):
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("manticore")
+    
+
+class QwenORPOAdapter(BaseModelAdapter):
+    """The model adapter for openaccess-ai-collective/manticore-13b-chat-pyg"""
+
+    use_fast_tokenizer = False
+
+    def match(self, model_path: str):
+        return "qwen" in model_path.lower() and "orpo" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("qwen-orpo")
 
 
 class GuanacoAdapter(BaseModelAdapter):
