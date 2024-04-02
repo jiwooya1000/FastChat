@@ -593,6 +593,18 @@ register_conv_template(
     )
 )
 
+# Qwen-ORPO in orpo-explorers default template
+register_conv_template(
+    Conversation(
+        name="qwen-orpo",
+        roles=("<|im_start|>user", "<|im_start|>assistant"),
+        sep_style=SeparatorStyle.CHATML,
+        sep="<|im_end|>",
+        stop_token_ids=[151643, 151644, 151645],
+        stop_str=["<|endoftext|>", "<|im_start|>", "<|im_end|>"],
+    )
+)
+
 # CodeGeex(2) Template
 register_conv_template(
     Conversation(
