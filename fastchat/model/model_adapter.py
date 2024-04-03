@@ -88,7 +88,9 @@ class BaseModelAdapter:
         revision = from_pretrained_kwargs.get("revision", "main")
         try:
             tokenizer = AutoTokenizer.from_pretrained(
-                model_path,
+                #model_path,
+                "Qwen/Qwen1.5-7B",
+                #"mistralai/Mistral-7B-v0.1",
                 use_fast=self.use_fast_tokenizer,
                 revision=revision,
                 trust_remote_code=True,
@@ -1288,7 +1290,34 @@ class QwenORPOAdapter(BaseModelAdapter):
     use_fast_tokenizer = False
 
     def match(self, model_path: str):
-        return "qwen1.5" in model_path.lower() and "orpo" in model_path.lower()
+        return "qwen" in model_path.lower() and "ohp" in model_path.lower()
+
+    def float_set(self, config, option):
+        config.bf16 = True
+        config.fp16 = False
+        config.fp32 = False
+
+        if option == "bf16":
+            config.bf16 = True
+        elif option == "fp16":
+            config.fp16 = True
+        elif option == "fp32":
+            config.fp32 = True
+        else:
+            print("Invalid option. Please choose one from 'bf16', 'fp16' and 'fp32'.")
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        model, tokenizer = super().load_model(model_path, from_pretrained_kwargs)
+        model.config.eos_token_id = tokenizer.eos_token_id
+        model.config.pad_token_id = tokenizer.pad_token_id
+        return model, tokenizer
+    
+    # def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+    #     model, tokenizer = super().load_model(model_path, from_pretrained_kwargs)
+    #     model.config.eos_token_id = tokenizer.eos_token_id
+    #     model.config.pad_token_id = tokenizer.pad_token_id
+
+    #     return model, tokenizer
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("qwen-orpo")
@@ -1521,6 +1550,9 @@ class MistralAdapter(BaseModelAdapter):
         model, tokenizer = super().load_model(model_path, from_pretrained_kwargs)
         model.config.eos_token_id = tokenizer.eos_token_id
         model.config.pad_token_id = tokenizer.pad_token_id
+
+        #tokenizer.add_special_tokens({'additional_special_tokens': ["<|im_start|>", "<|im_end|>"]})
+
         return model, tokenizer
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
@@ -1685,7 +1717,7 @@ class QwenChatAdapter(BaseModelAdapter):
     """
 
     def match(self, model_path: str):
-        return "qwen" in model_path.lower()
+        return "qwen-7b-chat" in model_path.lower()
 
     def float_set(self, config, option):
         config.bf16 = False
