@@ -52,6 +52,7 @@ peft_share_base_weights = (
     os.environ.get("PEFT_SHARE_BASE_WEIGHTS", "false").lower() == "true"
 )
 
+
 ANTHROPIC_MODEL_LIST = (
     "claude-1",
     "claude-2",
@@ -59,6 +60,8 @@ ANTHROPIC_MODEL_LIST = (
     "claude-2.1",
     "claude-instant-1",
     "claude-instant-1.2",
+    "claude-3-opus-20240229",
+    "claude-3-sonnet-20240229"
 )
 
 OPENAI_MODEL_LIST = (
@@ -74,6 +77,11 @@ OPENAI_MODEL_LIST = (
     "gpt-4-1106-preview",
     "gpt-4-0125-preview",
 )
+
+GEMINI_MODEL_LIST = (
+    "gemini-1.0-pro"
+)
+
 
 
 class BaseModelAdapter:
@@ -1572,6 +1580,15 @@ class Llama3Adapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("llama3")
 
+class Phi2Adapter(BaseModelAdapter):
+    """The model adapter for Phi-2"""
+
+    def match(self, model_path: str):
+        return "phi-2" in model_path.lower()
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("phi-2")
+
 
 class Llama2Adapter(BaseModelAdapter):
     """The model adapter for Llama-2 (e.g., meta-llama/Llama-2-7b-hf)"""
@@ -2396,7 +2413,7 @@ register_model_adapter(GeminiAdapter)
 register_model_adapter(ChatGPTAdapter)
 register_model_adapter(AzureOpenAIAdapter)
 register_model_adapter(ClaudeAdapter)
-register_model_adapter(MPTAdapter)
+# register_model_adapter(MPTAdapter)
 register_model_adapter(BiLLaAdapter)
 register_model_adapter(RedPajamaINCITEAdapter)
 register_model_adapter(H2OGPTAdapter)
@@ -2437,6 +2454,7 @@ register_model_adapter(ReaLMAdapter)
 register_model_adapter(PhindCodeLlamaAdapter)
 register_model_adapter(CodeLlamaAdapter)
 register_model_adapter(Llama2ChangAdapter)
+register_model_adapter(Phi2Adapter)
 register_model_adapter(ZephyrAdapter)
 register_model_adapter(NotusAdapter)
 register_model_adapter(CatPPTAdapter)
