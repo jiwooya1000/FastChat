@@ -30,3 +30,8 @@ tests/state_of_the_union.txt
 # Build
 build
 fastchat/llm_judge/gen_mtbench.sh
+
+# Add
+fastchat/llm_judge/*.out
+fastchat/llm_judge/data/mt_bench/model_answer/*
+fastchat/llm_judge/data/mt_bench/model_judgment/*

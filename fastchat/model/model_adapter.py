@@ -88,9 +88,7 @@ class BaseModelAdapter:
         revision = from_pretrained_kwargs.get("revision", "main")
         try:
             tokenizer = AutoTokenizer.from_pretrained(
-                #model_path,
-                "Qwen/Qwen1.5-7B",
-                #"mistralai/Mistral-7B-v0.1",
+                model_path,
                 use_fast=self.use_fast_tokenizer,
                 revision=revision,
                 trust_remote_code=True,
@@ -1290,7 +1288,7 @@ class QwenORPOAdapter(BaseModelAdapter):
     use_fast_tokenizer = False
 
     def match(self, model_path: str):
-        return "qwen" in model_path.lower() and "ohp" in model_path.lower()
+        return "qwen" in model_path.lower() and "capybara" in model_path.lower()
 
     def float_set(self, config, option):
         config.bf16 = True
@@ -1557,6 +1555,22 @@ class MistralAdapter(BaseModelAdapter):
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("mistral")
+    
+class Llama3Adapter(BaseModelAdapter):
+    """The model adapter for Mistral AI models"""
+
+    def match(self, model_path: str):
+        return "llama3" in model_path.lower() or "llama-3" in model_path.lower()
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        model, tokenizer = super().load_model(model_path, from_pretrained_kwargs)
+        model.config.eos_token_id = tokenizer.eos_token_id
+        model.config.pad_token_id = tokenizer.pad_token_id
+
+        return model, tokenizer
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("llama3")
 
 
 class Llama2Adapter(BaseModelAdapter):
@@ -2362,6 +2376,7 @@ register_model_adapter(AiroborosAdapter)
 register_model_adapter(LongChatAdapter)
 register_model_adapter(GoogleT5Adapter)
 register_model_adapter(KoalaAdapter)
+register_model_adapter(Llama3Adapter)
 register_model_adapter(AlpacaAdapter)
 register_model_adapter(ChatGLMAdapter)
 register_model_adapter(CodeGeexAdapter)

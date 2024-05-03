@@ -600,8 +600,8 @@ register_conv_template(
         roles=("<|im_start|>user", "<|im_start|>assistant"),
         sep_style=SeparatorStyle.CHATML,
         sep="<|im_end|>",
-        stop_token_ids=[151643, 151644, 151645],
-        stop_str=["<|endoftext|>", "<|im_start|>", "<|im_end|>"],
+        stop_token_ids=[151645],
+        stop_str=["<|im_end|>"],
     )
 )
 
@@ -1103,16 +1103,25 @@ register_conv_template(
     )
 )
 
-# Mistral template
-# source: https://docs.mistral.ai/llm/mistral-instruct-v0.1#chat-template
+register_conv_template(
+    Conversation(
+        name="llama3",
+        system_template="<|system|>\n{system_message}",
+        roles=("<|user|>", "<|assistant|>"),
+        sep_style=SeparatorStyle.CHATML,
+        sep="<|end_of_text|>",
+        stop_str=["<|end_of_text|>", "<|user|>", "<|assistant|>"],
+    )
+)
+
 register_conv_template(
     Conversation(
         name="mistral",
-        system_template="[INST] {system_message}\n",
-        roles=("[INST]", "[/INST]"),
-        sep_style=SeparatorStyle.LLAMA2,
-        sep=" ",
-        sep2="</s>",
+        system_template="<|system|>\n{system_message}",
+        roles=("<|user|>", "<|assistant|>"),
+        sep_style=SeparatorStyle.CHATML,
+        sep="</s>",
+        stop_str=["<|end_of_text|>", "<|user|>", "<|assistant|>"],
     )
 )
 
