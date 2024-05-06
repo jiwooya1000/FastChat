@@ -463,10 +463,9 @@ def chat_completion_gemini(model, conv, temperature, max_tokens, api_dict=None):
                         ]
     client = genai.GenerativeModel(model, generation_config=generation_config,safety_settings=safety_settings)
 
-    # if api_dict is not None:
-    #     api_key = api_dict["api_key"]
-    genai.configure(api_key='AIzaSyD-YaVr7dWebk9MOHIl8ANsZf0Y7qIuWzc')
-    # genai.configure(api_key='AIzaSyBccIovlLMzo0_tTJ69aqVquNgcpmOoYKc')
+    if api_dict is not None:
+        api_key = api_dict["api_key"]
+    genai.configure(api_key=api_key)
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
