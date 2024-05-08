@@ -11,13 +11,14 @@ import re
 import time
 from typing import Optional
 
-import openai
+# import openai
 import anthropic
 
 from fastchat.model.model_adapter import (
     get_conversation_template,
     ANTHROPIC_MODEL_LIST,
     OPENAI_MODEL_LIST,
+    GEMINI_MODEL_LIST,
 )
 
 # API setting constants
@@ -169,6 +170,8 @@ def run_judge_single(question, answer, judge, ref_answer, multi_turn=False):
         judgment = chat_completion_anthropic(
             model, conv, temperature=0, max_tokens=1024
         )
+    elif model in GEMINI_MODEL_LIST:
+        judgment = chat_completion_gemini(model, conv, temperature=0, max_tokens=2048)
     else:
         raise ValueError(f"Invalid judge model name: {model}")
 
@@ -214,7 +217,7 @@ def play_a_match_single(match: MatchSingle, output_file: str):
             "judgment": judgment,
             "score": score,
             "turn": turn,
-            "tstamp": time.time(),
+            "tstamp": time.time(), 
         }
         print(
             f"question: {question_id}, turn: {turn}, model: {model}, "
@@ -276,6 +279,11 @@ def run_judge_pair(question, answer_a, answer_b, judge, ref_answer, multi_turn=F
         judgment = chat_completion_anthropic(
             model, conv, temperature=0, max_tokens=1024
         )
+    elif model in GEMINI_MODEL_LIST:
+        judgment = chat_completion_gemini(
+            model, conv, temperature=0, max_tokens=2048
+        )
+    # add if paiwrusw judgement necessary
     else:
         raise ValueError(f"Invalid judge model name: {model}")
 
@@ -427,6 +435,53 @@ def chat_completion_openai(model, conv, temperature, max_tokens, api_dict=None):
 
     return output
 
+def chat_completion_gemini(model, conv, temperature, max_tokens, api_dict=None):
+    import google.generativeai as genai 
+    generation_config = {
+        "temperature": temperature,
+        # "top_p": 1,
+        # "top_k": 1,
+        "max_output_tokens": max_tokens, # might be diff
+        }
+    safety_settings = [
+                        {
+                            "category": "HARM_CATEGORY_HARASSMENT",
+                            "threshold": "BLOCK_NONE"
+                        },
+                        {
+                            "category": "HARM_CATEGORY_HATE_SPEECH",
+                            "threshold": "BLOCK_NONE"
+                        },
+                        {
+                            "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                            "threshold": "BLOCK_NONE"
+                        },
+                        {
+                            "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                            "threshold": "BLOCK_NONE"
+                        }
+                        ]
+    client = genai.GenerativeModel(model, generation_config=generation_config,safety_settings=safety_settings)
+
+    if api_dict is not None:
+        api_key = api_dict["api_key"]
+    genai.configure(api_key=api_key)
+    output = API_ERROR_OUTPUT
+    for _ in range(API_MAX_RETRY):
+        try:
+            # print('Conv', conv)
+            messages = conv.get_prompt() # try similar setting to openai
+            # print(messages)
+            response = client.generate_content(messages)
+            output = response.text
+            print(output)
+            break
+        except:
+            print('Error')
+            time.sleep(API_RETRY_SLEEP)
+
+    return output
+
 
 def chat_completion_openai_azure(model, conv, temperature, max_tokens, api_dict=None):
     openai.api_type = "azure"
@@ -472,25 +527,53 @@ def chat_completion_anthropic(model, conv, temperature, max_tokens, api_dict=Non
         api_key = api_dict["api_key"]
     else:
         api_key = os.environ["ANTHROPIC_API_KEY"]
-
+# https://docs.anthropic.com/claude/reference/migrating-from-text-completions-to-messages
     output = API_ERROR_OUTPUT
-    for _ in range(API_MAX_RETRY):
-        try:
-            c = anthropic.Anthropic(api_key=api_key)
-            prompt = conv.get_prompt()
-            response = c.completions.create(
-                model=model,
-                prompt=prompt,
-                stop_sequences=[anthropic.HUMAN_PROMPT],
-                max_tokens_to_sample=max_tokens,
-                temperature=temperature,
-            )
-            output = response.completion
-            break
-        except anthropic.APIError as e:
-            print(type(e), e)
-            time.sleep(API_RETRY_SLEEP)
-    return output.strip()
+    # print(model)
+    if model in ['claude-3-opus-20240229']:
+    
+        for _ in range(API_MAX_RETRY):
+            try:
+                c = anthropic.Anthropic(api_key=api_key)
+                prompt = conv.get_prompt()
+                # print(prompt)
+
+                response = c.messages.create(
+                    model=model,
+                    system=conv.system_message,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    messages = [
+                          {"role": 'user', "content": conv.messages[0][1]},
+                          {"role": 'assistant', "content": ""},
+                    ]
+
+                )
+                output = response.content[0].text
+                break
+            except anthropic.APIError as e:
+                print(type(e), e)
+                time.sleep(API_RETRY_SLEEP)
+
+    else:
+        for _ in range(API_MAX_RETRY):
+            try:
+                c = anthropic.Anthropic(api_key=api_key)
+                prompt = conv.get_prompt()
+                response = c.completions.create(
+                    model=model,
+                    prompt=prompt,
+                    stop_sequences=[anthropic.HUMAN_PROMPT],
+                    max_tokens_to_sample=max_tokens,
+                    temperature=temperature,
+                )
+                output = response.completion
+                print(output)
+                break
+            except anthropic.APIError as e:
+                print(type(e), e)
+                time.sleep(API_RETRY_SLEEP)
+    return output #.strip()
 
 
 def chat_completion_palm(chat_state, model, conv, temperature, max_tokens):
