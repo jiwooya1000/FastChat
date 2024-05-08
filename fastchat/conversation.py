@@ -880,6 +880,8 @@ register_conv_template(
     )
 )
 
+
+
 # MPT-30b-instruct default template
 # reference: https://huggingface.co/mosaicml/mpt-30b-instruct#formatting
 register_conv_template(
@@ -906,14 +908,24 @@ register_conv_template(
     )
 )
 
+# register_conv_template(
+#     Conversation(
+#         name="gemini",
+#         roles=("user", "model"),
+#         sep_style=None,
+#         sep=None,
+#     )
+# )
+
 register_conv_template(
     Conversation(
         name="gemini",
         roles=("user", "model"),
-        sep_style=None,
-        sep=None,
+        sep_style=SeparatorStyle.ADD_NEW_LINE_SINGLE,
+        sep='\n',
     )
 )
+
 
 # BiLLa default template
 register_conv_template(
@@ -1161,6 +1173,18 @@ register_conv_template(
         stop_str="<end>",
     )
 )
+
+register_conv_template(
+    Conversation(
+        name="phi-2",
+        system_message="You are a helpful  and harmless assistant named xDAN and created by xDAN-AI.Please response and work on questions thinking step by step.",
+        roles=("### Human: ", "### Assistant: "),
+        sep_style=SeparatorStyle.NO_COLON_SINGLE,
+        sep="\n\n",
+        stop_str=["<|endoftext|>", "###"],
+    )
+)
+
 
 # OpenOrcaxOpenChat-Preview2-13B template
 register_conv_template(
